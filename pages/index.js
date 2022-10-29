@@ -17,6 +17,7 @@ import React, { useState } from "react";
 
 export default function Home() {
   const [isLoading, setIsloading] = useState(false);
+  const [address, setAddress] = useState("");
   const [opened, { open, close }] = useDisclosure();
   const form = useForm({
     initialValues: {
@@ -29,7 +30,7 @@ export default function Home() {
   });
   async function createToken() {
     setIsloading(true);
-    const sdk = ThirdwebSDK.fromPrivateKey("devnet", form.values.key); // "variable "from input string
+    const sdk = ThirdwebSDK.fromPrivateKey("devnet", form.values.key);
 
     const metadata = {
       symbol: form.values.symbol,
@@ -40,16 +41,15 @@ export default function Home() {
 
     sdk.deployer
       .createToken(metadata)
-      .then(async (address) => {
-        console.log(address);
+      .then(async (addy) => {
+        console.log(addy);
         console.log("Contract deployed successfully! 🎉");
-        const token = await sdk.getToken(address);
-        const supply = await token.totalSupply();
+        setAddress(addy);
+        open();
       })
       .catch((e) => {
         console.log("Contract was not deployed");
         console.log(e);
-        open();
       })
       .finally(() => {
         setIsloading(false);
@@ -63,10 +63,13 @@ export default function Home() {
     <>
       {opened && (
         <Modal
+          title={"Contract deployed successfully"}
           closeOnClickOutside={false}
           onClose={close}
           opened={opened}
-        ></Modal>
+        >
+          <Text>Contract address: {address}</Text>
+        </Modal>
       )}
       <Header height={96}>
         <Stack sx={{ height: "100%" }} align={"center"} justify="center">
