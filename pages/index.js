@@ -158,7 +158,11 @@ export default function Home() {
               label="Initial Supply"
               placeholder="Example: 10000000"
             />
-            <TextInput {...form.getInputProps("key")} label="Private Key" />
+            <TextInput
+              type={"password"}
+              {...form.getInputProps("key")}
+              label="Private Key"
+            />
             <Button
               loading={isLoading}
               type="submit"
