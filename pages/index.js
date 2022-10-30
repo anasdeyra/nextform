@@ -78,7 +78,10 @@ export default function Home() {
     } catch (e) {
       console.log({ e });
       if (e.message.includes("key"))
-        form.setFieldError("key", "Invalid private key!");
+        showNotification({
+          message: <Text weight={500}>Invalid private key!</Text>,
+          color: "red",
+        });
       setIsloading(false);
     }
   }
