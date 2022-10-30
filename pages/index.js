@@ -2,6 +2,7 @@ import {
   Button,
   Center,
   Container,
+  Group,
   Header,
   Modal,
   Stack,
@@ -10,12 +11,14 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useDisclosure } from "@mantine/hooks";
+import { useClipboard, useDisclosure } from "@mantine/hooks";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk/solana";
+import { showNotification } from "@mantine/notifications";
 
 import React, { useState } from "react";
 
 export default function Home() {
+  const { copy } = useClipboard();
   const [isLoading, setIsloading] = useState(false);
   const [address, setAddress] = useState("");
   const [opened, { open, close }] = useDisclosure();
@@ -27,33 +30,57 @@ export default function Home() {
       supply: "",
       key: "",
     },
+    validate: {
+      description: (v) => (v !== "" ? null : "Description is required!"),
+      name: (v) => (v !== "" ? null : "Token name is required!"),
+      symbol: (v) => (v !== "" ? null : "Symbol is required!"),
+      supply: (v) => (v !== "" ? null : "Initial supply is required!"),
+      key: (v) => (v !== "" ? null : "Private key is required!"),
+    },
   });
   async function createToken() {
-    setIsloading(true);
-    const sdk = ThirdwebSDK.fromPrivateKey("devnet", form.values.key);
+    try {
+      setIsloading(true);
+      const sdk = ThirdwebSDK.fromPrivateKey("devnet", form.values.key);
 
-    const metadata = {
-      symbol: form.values.symbol,
-      description: form.values.description,
-      name: form.values.name,
-      initialSupply: form.values.supply,
-    };
+      const metadata = {
+        symbol: form.values.symbol,
+        description: form.values.description,
+        name: form.values.name,
+        initialSupply: form.values.supply,
+      };
 
-    sdk.deployer
-      .createToken(metadata)
-      .then(async (addy) => {
-        console.log(addy);
-        console.log("Contract deployed successfully! 🎉");
-        setAddress(addy);
-        open();
-      })
-      .catch((e) => {
-        console.log("Contract was not deployed");
-        console.log(e);
-      })
-      .finally(() => {
-        setIsloading(false);
-      }); // submit
+      sdk.deployer
+        .createToken(metadata)
+        .then(async (addy) => {
+          console.log(addy);
+          console.log("Contract deployed successfully! 🎉");
+          setAddress(addy);
+          open();
+        })
+        .catch((e) => {
+          console.log("Contract was not deployed");
+          console.log(e.message);
+          if (
+            e.message.includes(
+              "Attempt to debit an account but found no record of a prior credit"
+            )
+          ) {
+            showNotification({
+              message: <Text weight={500}>Insuficient credit!</Text>,
+              color: "red",
+            });
+          }
+        })
+        .finally(() => {
+          setIsloading(false);
+        }); // submit
+    } catch (e) {
+      console.log({ e });
+      if (e.message.includes("key"))
+        form.setFieldError("key", "Invalid private key!");
+      setIsloading(false);
+    }
   }
 
   const handleSubmit = form.onSubmit(() => {
@@ -68,7 +95,27 @@ export default function Home() {
           onClose={close}
           opened={opened}
         >
-          <Text>Contract address: {address}</Text>
+          <Text size={"xl"}>Contract address:</Text>
+          <Text mt={"xs"} size={"xl"}>
+            {address}
+          </Text>
+
+          <Center>
+            <Button
+              mt={"xl"}
+              color={"indigo"}
+              radius={"xl"}
+              onClick={() => {
+                copy(address);
+                showNotification({
+                  message: "your token address was copied!",
+                  color: "indigo",
+                });
+              }}
+            >
+              Copy{" "}
+            </Button>
+          </Center>
         </Modal>
       )}
       <Header height={96}>

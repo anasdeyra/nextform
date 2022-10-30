@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { MantineProvider } from "@mantine/core";
 import { Global } from "@emotion/react";
+import { NotificationsProvider } from "@mantine/notifications";
 
 export default function App(props) {
   const { Component, pageProps } = props;
@@ -28,7 +29,9 @@ export default function App(props) {
             `@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");`,
           ]}
         />
-        <Component {...pageProps} />
+        <NotificationsProvider>
+          <Component {...pageProps} />
+        </NotificationsProvider>
       </MantineProvider>
     </>
   );
