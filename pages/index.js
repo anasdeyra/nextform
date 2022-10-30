@@ -9,12 +9,13 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useClipboard, useDisclosure } from "@mantine/hooks";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk/solana";
 import { showNotification } from "@mantine/notifications";
-
+import { MdInfoOutline } from "react-icons/md";
 import React, { useState } from "react";
 
 export default function Home() {
@@ -89,6 +90,7 @@ export default function Home() {
   const handleSubmit = form.onSubmit(() => {
     createToken();
   });
+
   return (
     <>
       {opened && (
@@ -161,7 +163,12 @@ export default function Home() {
             <TextInput
               type={"password"}
               {...form.getInputProps("key")}
-              label="Private Key"
+              label={
+                <Group spacing={"xs"}>
+                  <Text>Private Key</Text>
+                  <Info />
+                </Group>
+              }
             />
             <Button
               loading={isLoading}
@@ -176,5 +183,22 @@ export default function Home() {
         </form>
       </Container>
     </>
+  );
+}
+
+function Info() {
+  return (
+    <Tooltip
+      label="Private key will not enter our database"
+      position="top-end"
+      withArrow
+      transition="pop-bottom-right"
+    >
+      <Text color="dimmed" sx={{ cursor: "help" }}>
+        <Center>
+          <MdInfoOutline size={16} stroke={1.5} />
+        </Center>
+      </Text>
+    </Tooltip>
   );
 }
